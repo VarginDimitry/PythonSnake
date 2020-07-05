@@ -20,3 +20,12 @@ def printArray(a):
         for j in range(len(a[0])):
             print(a[i][j], end=" ")
         print()
+
+
+def FoodNumber(a):
+    counter = 0
+    for i in range(len(a)):
+        for j in range(len(a[0])):
+            if a[i][j] == -1:
+                counter += 1
+    return counter

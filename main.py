@@ -6,17 +6,26 @@ from Scripts.MiniDef import *
 pygame.init()
 WIDTH = 720
 HEIGHT = 500
-window = pygame.display.set_mode((WIDTH, HEIGHT))
 BLOCK_LENGTH = 20
+window = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Snake")
+
 PLACE = [[0 for j in range(WIDTH // BLOCK_LENGTH)] for i in range(HEIGHT // BLOCK_LENGTH)]
 PLACE[len(PLACE) // 2][len(PLACE[0]) // 2] = 1
+i_food, j_food = random.randint(0, 24), random.randint(0, 35)
+while PLACE[i_food][j_food] != 0:
+    i_food, j_food = random.randint(0, 24), random.randint(0, 35)
+PLACE[i_food][j_food] = -1
+
+FOOD_FLAG = False
+FOOD_LIMIT = 1
 
 SNAKE_STATUS = "stay"
 
 RUN = 0  # 0 is run; 1 is when the escape was pressed;
         # 2 is game over; 3 is code error
 while not RUN:
-    pygame.time.delay(100)
+    pygame.time.delay(150)
     keys = pygame.key.get_pressed()
 
     for event in pygame.event.get():
@@ -57,27 +66,35 @@ while not RUN:
             SNAKE_STATUS = "left"
 
         if SNAKE_STATUS == "up":
-            if (i_head-1) < 0:
+            if (i_head-1) < 0 or (PLACE[i_head-1][j_head] > 0):
                 RUN = 2
                 break
+            elif PLACE[i_head-1][j_head] == -1:
+                FOOD_FLAG = True
             PLACE[i_head-1][j_head] = 1
             i_head -= 1
         elif SNAKE_STATUS == "right":
-            if (j_head+1) >= WIDTH//BLOCK_LENGTH:
+            if (j_head+1) >= WIDTH//BLOCK_LENGTH or (PLACE[i_head][j_head+1] > 0):
                 RUN = 2
                 break
+            elif PLACE[i_head][j_head+1] == -1:
+                FOOD_FLAG = True
             PLACE[i_head][j_head+1] = 1
             j_head += 1
         elif SNAKE_STATUS == "down":
-            if (i_head+1) >= HEIGHT//BLOCK_LENGTH:
+            if (i_head+1) >= HEIGHT//BLOCK_LENGTH or (PLACE[i_head+1][j_head] > 0):
                 RUN = 2
                 break
+            elif PLACE[i_head+1][j_head] == -1:
+                FOOD_FLAG = True
             PLACE[i_head+1][j_head] = 1
             i_head += 1
         elif SNAKE_STATUS == "left":
-            if (j_head-1) < 0:
+            if (j_head-1) < 0 or (PLACE[i_head][j_head-1] > 0):
                 RUN = 2
                 break
+            elif PLACE[i_head][j_head-1] == -1:
+                FOOD_FLAG = True
             PLACE[i_head][j_head-1] = 1
             j_head -= 1
 
@@ -86,8 +103,21 @@ while not RUN:
                 if PLACE[i][j] > 0:
                     PLACE[i][j] += 1
         PLACE[i_head][j_head] = 1
-        i_head, j_head = findXinA2(maxInArray2(PLACE), PLACE)
-        PLACE[i_head][j_head] = 0
+        if not FOOD_FLAG:
+            i_head, j_head = findXinA2(maxInArray2(PLACE), PLACE)
+            PLACE[i_head][j_head] = 0
+        FOOD_FLAG = False
+        size = maxInArray2(PLACE)
+        if size >= 10:
+            FOOD_LIMIT = 2
+            if size >= 18:
+                FOOD_LIMIT = 3
+
+        while FoodNumber(PLACE) < FOOD_LIMIT:
+            i_food, j_food = random.randint(0, 24), random.randint(0, 35)
+            while PLACE[i_food][j_food] != 0:
+                i_food, j_food = random.randint(0, 24), random.randint(0, 35)
+            PLACE[i_food][j_food] = -1
 
     window.fill((0, 0, 0))
     for i in range(len(PLACE)):
@@ -100,6 +130,6 @@ while not RUN:
             pygame.draw.rect(window, color, (j * BLOCK_LENGTH, i * BLOCK_LENGTH, 50, 50))
 
     pygame.display.update()
-    #printArray(PLACE)
+    # printArray(PLACE)
 
 pygame.quit()
